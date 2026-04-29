@@ -9,10 +9,10 @@ const TaskSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    Subject: {
-        type: String,
-        required: true,
-    },
+   course: {
+    type: String,
+    required: true
+},
     Class_Section: {
         type: String,
         required: true,
