@@ -1,9 +1,7 @@
 // controllers/authController.js
 
-const Student = require("../models/studentsAuth");
+const Student = require("../models/studentsmodels");
 const bcrypt = require("bcryptjs");
-const generateToken = require("../utils/generateToken");
-
 const jwt = require("jsonwebtoken");
 
 const generateToken = (user) => {
@@ -14,14 +12,12 @@ const generateToken = (user) => {
     );
 };
 
-module.exports = generateToken;
-
 // REGISTER
 const register = async (req, res) => {
     try {
-        const { name, email, password, courses } = req.body;
+        const { name, email, password, courses, batch } = req.body;
 
-        if (!name || !email || !password || !courses) {
+        if (!name || !email || !password || !courses || !batch) {
             return res.status(400).json({ message: "All fields required" });
         }
 
@@ -37,7 +33,8 @@ const register = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            courses
+            courses,
+            batch
         });
 
         const token = generateToken(user);
@@ -85,15 +82,70 @@ const login = async (req, res) => {
     }
 };
 
-
 // GET PROFILE
 const getProfile = async (req, res) => {
     try {
         const user = await Student.findById(req.user.id).select("-password");
-
         res.status(200).json(user);
-
     } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// UPDATE PROFILE
+const updateProfile = async (req, res) => {
+    try {
+        const { name, mobile, location } = req.body;
+        const studentId = req.user.id;
+
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (mobile) updateData.mobile = mobile;
+        if (location) updateData.location = location;
+        
+        if (req.file) {
+            updateData.profileImage = req.file.path;
+        }
+
+        const updatedUser = await Student.findByIdAndUpdate(
+            studentId,
+            { $set: updateData },
+            { new: true }
+        ).select("-password");
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: updatedUser
+        });
+    } catch (error) {
+        console.error("UPDATE PROFILE ERROR:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// CHANGE PASSWORD
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const studentId = req.user.id;
+
+        const user = await Student.findById(studentId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Current password incorrect" });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.status(200).json({ message: "Password updated successfully" });
+    } catch (error) {
+        console.error("CHANGE PASSWORD ERROR:", error);
         res.status(500).json({ message: "Server error" });
     }
 };
@@ -101,5 +153,7 @@ const getProfile = async (req, res) => {
 module.exports = {
     register,
     login,
-    getProfile
+    getProfile,
+    updateProfile,
+    changePassword
 };

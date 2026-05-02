@@ -1,10 +1,6 @@
-const mongoose = require('mongoose')
-
-
-
+const mongoose = require('mongoose');
 
 const studentsAuth = mongoose.Schema({
-
     name: {
         type: String,
         required: true
@@ -34,9 +30,31 @@ const studentsAuth = mongoose.Schema({
         ],
         required: true
     },
+    batch: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ["Active", "Inactive", "Suspended"],
+        default: "Active"
+    },
+    profileImage: {
+        type: String,
+        default: ""
+    },
+    mobile: {
+        type: String,
+        default: ""
+    },
+    location: {
+        type: String,
+        default: ""
+    },
     createdAt: {
         type: Date,
         default: Date.now
     }
+}, { timestamps: true });
 
-})
+module.exports = mongoose.model("StudentAuth", studentsAuth);

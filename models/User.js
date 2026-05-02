@@ -13,6 +13,26 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    profileImage: {
+        type: String,
+        default: ""
+    },
+    designation: {
+        type: String,
+        default: "Professor"
+    },
+    phone: {
+        type: String,
+        default: ""
+    },
+    subject: {
+        type: String,
+        default: "General"
+    },
+    joinedDate: {
+        type: String,
+        default: ""
     }
 }, { timestamps: true });
 
